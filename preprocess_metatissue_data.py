@@ -137,8 +137,7 @@ def check_to_make_sure_all_variants_were_filled_in(variants):
 # Fill in variant data
 def fill_in_variant_data(variants, genotype_dir):
 	# Do seperately for each chromosome
-	for chrom_num in range(10,11):
-		print(chrom_num)
+	for chrom_num in range(1,23):
 		genotype_file = genotype_dir + 'GTEx_Analysis_2017-06-05_v8_WholeGenomeSeq_838Indiv_chr' + str(chrom_num) + '_adjusted_dosage.txt.gz'
 		# Fill in variant data for current chromosome
 		variants = fill_in_variant_data_one_chromosome(variants, genotype_file)
@@ -173,7 +172,6 @@ def fill_in_expression_data_for_one_tissue(expression_file, genes, tissue):
 def fill_in_expression_data(genes, expression_dir, tissues):
 	# Loop through tissues
 	for tissue in tissues:
-		print(tissue)
 		# Expression file for this tissues
 		expression_file = expression_dir + tissue + '.v8.normalized_expression_adjusted_by_covariates.txt.gz'
 		# Fill in expression data for this one tissue

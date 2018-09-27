@@ -1,4 +1,10 @@
+#!/bin/bash -l
 
+#SBATCH
+#SBATCH --time=24:0:0
+#SBATCH --partition=shared
+#SBATCH --nodes=1
+#SBATCH --mem=10GB
 
 
 ################################################
@@ -57,9 +63,8 @@ preprocess_metatissue_dir="/work-zfs/abattle4/bstrober/gtex_v8_eqtls/tissue_spec
 # Directory containing metatissue output files
 metatissue_output_dir="/work-zfs/abattle4/bstrober/gtex_v8_eqtls/tissue_specificity/metatissue/metatissue_output/"
 
-
-
-
+# Directory containing organized (merged) metatissue results
+organized_metatissue_output_dir="/work-zfs/abattle4/bstrober/gtex_v8_eqtls/tissue_specificity/metatissue/organized_metatissue_results/"
 
 
 
@@ -69,10 +74,9 @@ metatissue_output_dir="/work-zfs/abattle4/bstrober/gtex_v8_eqtls/tissue_specific
 ################################################
 ## Run analysis
 #################################################
-
-if false; then
 sh preprocess_metatissue_data.sh $trans_eqtl_file $tissue_list_file $genotype_dir $expression_dir $preprocess_metatissue_dir
-fi
 
 sh run_gemma_tissue.sh $trans_eqtl_file $preprocess_metatissue_dir $metatissue_output_dir $java_compiler $han_eskin_pvalue_table_file $mt_pvalue_table_file $metasoft_jar $gemma_directory
 
+
+sh organize_metatissue_results.sh $trans_eqtl_file $organized_metatissue_output_dir $metatissue_output_dir $preprocess_metatissue_dir $tissue_list_file

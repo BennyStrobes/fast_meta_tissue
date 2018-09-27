@@ -35,5 +35,3 @@ for line in f:
 
 	boolean = fmt.run_fast_meta_tissue(metatissue_output_dir, gene_list_file, genotype_file, tissue_info_file, heuristic, snp_id, ensamble_id, gemma_directory, java_compiler, metasoft_jar, han_eskin_pvalue_table_file, mt_pvalue_table_file)
 
-	pdb.set_trace()
-

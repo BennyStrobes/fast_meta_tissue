@@ -240,7 +240,7 @@ def print_helper_fast_meta_metasoft_script(output_file,output_dir,tissue_counts,
     if heuristic == True:
         stringer = ' '.join(np.asarray(tissue_counts).astype(str))
         t.write(' -sample_per_study "' + stringer + '"' + ' -mt_pvalue_table ' + mt_pvalue_table + ' -sigmag ' + output_dir + 'metatiss.sigmag.txt.gz')
-    t.write(' -mvalue -mvalue_prior_sigma 0.4 -mvalue_p_thres 1.0 -mvalue_method mcmc')
+    t.write(' -mvalue -mvalue_prior_sigma 0.4 -mvalue_p_thres 1.0 -seed 1 -mvalue_method mcmc')
     t.close()
 
 #Print output files from glmm into correct format for input to meta_soft

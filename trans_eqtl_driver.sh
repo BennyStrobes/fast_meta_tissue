@@ -14,7 +14,8 @@
 # Each line is a variant gene pair
 # Column 1 is variant id
 # Column 2 is ensamble id
-trans_eqtl_file="/work-zfs/abattle4/bstrober/gtex_v8_eqtls/tissue_specificity/metatissue/input_data/cis_practice_input.txt"
+#cis_practice_input.txt
+trans_eqtl_file="/work-zfs/abattle4/bstrober/gtex_v8_eqtls/tissue_specificity/metatissue/input_data/protein_coding_trans_hits_fdr_.5.txt"
 
 # File containing all gtex v8 tissue names (each line is a tissue)
 tissue_list_file="/work-zfs/abattle4/bstrober/gtex_v8_eqtls/tissue_specificity/metatissue/input_data/tissue_names.txt"
@@ -74,9 +75,29 @@ organized_metatissue_output_dir="/work-zfs/abattle4/bstrober/gtex_v8_eqtls/tissu
 ################################################
 ## Run analysis
 #################################################
-sh preprocess_metatissue_data.sh $trans_eqtl_file $tissue_list_file $genotype_dir $expression_dir $preprocess_metatissue_dir
+if false; then
+sbatch preprocess_metatissue_data.sh $trans_eqtl_file $tissue_list_file $genotype_dir $expression_dir $preprocess_metatissue_dir
+fi
 
-sh run_gemma_tissue.sh $trans_eqtl_file $preprocess_metatissue_dir $metatissue_output_dir $java_compiler $han_eskin_pvalue_table_file $mt_pvalue_table_file $metasoft_jar $gemma_directory
 
 
+num_jobs="400"
+#for job_number in $(seq 0 $(($num_jobs-1))); do 
+for job_number in $(seq 0 0); do 
+	echo $job_number
+	sbatch run_gemma_tissue.sh $trans_eqtl_file $preprocess_metatissue_dir $metatissue_output_dir $java_compiler $han_eskin_pvalue_table_file $mt_pvalue_table_file $metasoft_jar $gemma_directory $job_number $num_jobs
+done
+
+
+
+
+
+
+
+
+
+
+
+if false; then
 sh organize_metatissue_results.sh $trans_eqtl_file $organized_metatissue_output_dir $metatissue_output_dir $preprocess_metatissue_dir $tissue_list_file
+fi

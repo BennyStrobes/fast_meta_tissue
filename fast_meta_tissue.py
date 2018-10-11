@@ -62,7 +62,14 @@ def print_matrix_line_by_line(output_file,temp,n):
         t.write('\t'.join(temp[i,:]) + '\n')
     t.close()
 
-def make_phenotype_vector(gene_list_file,output_file):
+def extract_valid_indices(data, missing_donors):
+    indices = []
+    for i, val in enumerate(data):
+        if val not in missing_donors:
+            indices.append(i)
+    return indices
+
+def make_phenotype_vector(gene_list_file,output_file, missing_donors):
     phen_vec = np.asarray([])
     sample_vec = np.asarray([])
     tissue_counts = []
@@ -73,13 +80,14 @@ def make_phenotype_vector(gene_list_file,output_file):
         count = 0
         for line in g:
             line = line.rstrip()
-            data = line.split()
+            data = np.asarray(line.split())
             if count == 0:
                 count = count + 1
-                sample_vec = np.hstack((sample_vec,data))
+                valid_indices = extract_valid_indices(data, missing_donors)
+                sample_vec = np.hstack((sample_vec,data[valid_indices]))
                 continue
-            phen_vec = np.hstack((phen_vec,data))
-            tissue_counts.append(len(data))
+            phen_vec = np.hstack((phen_vec,data[valid_indices]))
+            tissue_counts.append(len(data[valid_indices]))
     np.savetxt(output_file,phen_vec,delimiter='\n',fmt="%s")
     return tissue_counts,sample_vec,phen_vec
 def print_design_matrix_helper(output_file1,output_file2,design_matrix):
@@ -130,8 +138,19 @@ def get_tbt_std_heuristic(output_dir,model_data):
         cumulative=cumulative+tiss_count
     return sdev
 
-def find_samples_in_each_tissue(input_file):
+# First need to remove rows of tissue_info_file (ie. donors) that don't have observed genotype data
+def remove_missing_donors(temp,missing_donors):
+    good_rows = []
+    for row_num in range(temp.shape[0]):
+        if temp[row_num,0] not in missing_donors:
+            good_rows.append(row_num)
+    temp = temp[good_rows,:]
+    return temp
+
+def find_samples_in_each_tissue(input_file, missing_donors):
     temp = np.loadtxt(input_file,delimiter='\t',dtype=str,comments=' ')
+    # First need to remove rows of tissue_info_file (ie. donors) that don't have observed genotype data
+    temp = remove_missing_donors(temp,missing_donors)
     row,col = temp.shape 
     n_tiss = col -1
     n_samp = row-1
@@ -141,11 +160,20 @@ def find_samples_in_each_tissue(input_file):
         index_to_array[index] = np.where(temp[1:,1+index] == '1')[0]
     return n_samp,n_tiss,index_to_tissue,index_to_array
 
+def remove_nas_from_vector(geno):
+    new_geno = []
+    for ele in geno:
+        if ele == 'NA':
+            continue
+        new_geno.append(ele)
+    return(np.asarray(new_geno))
+
 #Create design matrix
 def make_design_matrix(tissue_counts,genotype_file,n_tiss,index_to_array,n_measurements):
     mat = np.zeros((n_measurements,2*n_tiss)).astype(str)
     cumulative = 0
     geno = np.loadtxt(genotype_file,delimiter='\t',dtype=str)
+    geno = remove_nas_from_vector(geno)
     for itera,count in enumerate(tissue_counts):
         mat[cumulative:(cumulative+count),itera] = np.ones(count)
         indices = index_to_array[itera]
@@ -153,18 +181,57 @@ def make_design_matrix(tissue_counts,genotype_file,n_tiss,index_to_array,n_measu
         cumulative = cumulative + count 
     return mat
 
+# Get list of donors that are missing genotype data for this variant
+def extract_donors_with_missing_genotype_data(genotype_file, tissue_info_file):
+    # First create list of the ordered names of all the donors
+    all_donors = []
+    f = open(tissue_info_file)
+    head_count = 0 # Skip header
+    for line in f:
+        line = line.rstrip()
+        data = line.split()
+        if head_count == 0: # Skip header
+            head_count = head_count + 1
+            continue
+        # Add donor name to array
+        all_donors.append(data[0])
+    f.close()
+
+    # Using the ordered list of all the donors, go into the genotype file to see which donors are NA
+    missing_donors = {}
+    f = open(genotype_file)
+    for line in f:
+        line = line.rstrip()
+        data = line.split()
+        genotype_vec = data
+    f.close()
+    # Check to make sure len(all_donors) == len(genotype_vec)
+    if len(all_donors) != len(genotype_vec):
+        print('fundamental assumption error!')
+    for i, dosage in enumerate(genotype_vec):
+        if dosage == 'NA':
+            missing_donors[all_donors[i]] = 1
+    return missing_donors
+
+
 ##Driver to preprocess/reformat data into correct format for GEMMA
 def preprocess_fast_meta_tissue(output_dir,gene_list_file,genotype_file,tissue_info_file):
     print('Reformatting data...')
     model_data = []
+
+    ##########################################
+    # Get list of donors that are missing genotype data for this variant
+    missing_donors = extract_donors_with_missing_genotype_data(genotype_file, tissue_info_file)
+
     #############################################
     #Find exactly which samples are expressed in which tissue
-    n_samp,n_tiss,index_to_tissue,index_to_array = find_samples_in_each_tissue(tissue_info_file)
+    n_samp,n_tiss,index_to_tissue,index_to_array = find_samples_in_each_tissue(tissue_info_file, missing_donors)
+
     #If number of tissues expressed == 1, get out.
     if n_tiss == 1:
         return False,model_data
     #Make phenotype vector, y
-    tissue_counts,sample_vec,y = make_phenotype_vector(gene_list_file,output_dir + 'phenotype.txt')
+    tissue_counts,sample_vec,y = make_phenotype_vector(gene_list_file,output_dir + 'phenotype.txt', missing_donors)
     n_measurements = len(sample_vec)
     ################################
     #Save the relatedness matrix. This is a big file and takes a while to save

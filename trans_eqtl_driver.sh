@@ -76,17 +76,17 @@ organized_metatissue_output_dir="/work-zfs/abattle4/bstrober/gtex_v8_eqtls/tissu
 ## Run analysis
 #################################################
 if false; then
-sbatch preprocess_metatissue_data.sh $trans_eqtl_file $tissue_list_file $genotype_dir $expression_dir $preprocess_metatissue_dir
+sh preprocess_metatissue_data.sh $trans_eqtl_file $tissue_list_file $genotype_dir $expression_dir $preprocess_metatissue_dir
 fi
-
 
 
 num_jobs="400"
 #for job_number in $(seq 0 $(($num_jobs-1))); do 
-for job_number in $(seq 0 0); do 
+for job_number in $(seq 0 50); do 
 	echo $job_number
 	sbatch run_gemma_tissue.sh $trans_eqtl_file $preprocess_metatissue_dir $metatissue_output_dir $java_compiler $han_eskin_pvalue_table_file $mt_pvalue_table_file $metasoft_jar $gemma_directory $job_number $num_jobs
 done
+
 
 
 

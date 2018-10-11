@@ -4,6 +4,7 @@
 #SBATCH --time=24:0:0
 #SBATCH --partition=shared
 #SBATCH --nodes=1
+#SBATCH --mem=10GB
 
 trans_eqtl_file="$1"
 preprocess_metatissue_dir="$2"

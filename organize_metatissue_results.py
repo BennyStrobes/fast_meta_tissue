@@ -143,7 +143,7 @@ def print_line_to_output_file_helper(t, snp_id, ensamble_id, pvalue_fe, pvalue_r
 	return t
 
 eqtl_file = sys.argv[1]
-organized_metatissue_output_dir = sys.argv[2]
+organized_metatissue_results_file = sys.argv[2]
 metatissue_output_dir = sys.argv[3]
 preprocess_metatissue_dir = sys.argv[4]
 tissue_list_file = sys.argv[5]
@@ -152,8 +152,7 @@ tissue_list_file = sys.argv[5]
 tissue_names = extract_tissue_names(tissue_list_file)
 
 # Open output file handle
-output_file = organized_metatissue_output_dir + 'gemmatissue_output_v8.txt'
-t = open(output_file, 'w')
+t = open(organized_metatissue_results_file, 'w')
 
 # Print header line only to output file
 t = print_header_to_output_file(t, tissue_names)
@@ -168,6 +167,8 @@ for line in f:
 	if head_count == 0:  # Skip header
 		head_count = head_count + 1
 		continue
+	head_count = head_count + 1
+	print(head_count)
 	# Extract variant and gene names
 	snp_id = data[0]
 	ensamble_id = data[1]
@@ -175,6 +176,11 @@ for line in f:
 	# Extract dictionary list of all tissues observed for this variant gene pair from tissue info file
 	tissue_info_file = preprocess_metatissue_dir + 'tissue_info_' + snp_id + '_' + ensamble_id + '.txt'
 	observed_tissues = extract_observed_tissues_from_tissue_info_file(tissue_info_file)
+
+
+	# Skip tissues that have only one observed tissue
+	if len(observed_tissues) == 1:  
+		continue
 
 	# Extract relevent fields from metasoft output file
 	# This includes:

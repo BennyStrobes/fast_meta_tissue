@@ -129,6 +129,7 @@ def fill_in_variant_data_one_chromosome(variants, genotype_file):
 def check_to_make_sure_all_variants_were_filled_in(variants):
 	for variant in variants.keys():
 		if len(variants[variant]) == 0:
+			print(variant)
 			print('variant not filled in! Must hault.')
 			pdb.set_trace()
 	return

@@ -1,10 +1,10 @@
 #!/bin/bash -l
 
 #SBATCH
-#SBATCH --time=24:0:0
+#SBATCH --time=3:0:0
 #SBATCH --partition=shared
 #SBATCH --nodes=1
-#SBATCH --mem=10GB
+#SBATCH --mem=35GB
 
 eqtl_list_file="$1"
 tissue_list_file="$2"
